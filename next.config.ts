@@ -29,18 +29,25 @@ export default {
 	},
 
 	async redirects() {
-		return await client.fetch(groq`*[_type == 'redirect']{
-			source,
-			'destination': select(
-				destination.type == 'internal' =>
-					select(
-						destination.internal->._type == 'blog.post' => '/${BLOG_DIR}/',
-						'/'
-					) + destination.internal->.metadata.slug.current,
-				destination.external
-			),
-			permanent
-		}`)
+		try {
+			return await client.fetch(groq`*[_type == 'redirect']{
+				source,
+				'destination': select(
+					destination.type == 'internal' =>
+						select(
+							destination.internal->._type == 'blog.post' => '/${BLOG_DIR}/',
+							'/'
+						) + destination.internal->.metadata.slug.current,
+					destination.external
+				),
+				permanent
+			}`)
+		} catch (err) {
+			console.warn(
+				'Could not fetch redirects from Sanity, please check your environment variables.',
+			)
+			return []
+		}
 	},
 
 	async rewrites() {
